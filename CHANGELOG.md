@@ -1,5 +1,10 @@
 # Changes to the Mapbox Navigation SDK for iOS
 
+## v0.40.0-RbP
+
+### Other Changes
+* Fixed memory leaks after disconnecting the application from CarPlay. ([#2470](https://github.com/mapbox/mapbox-navigation-ios/pull/2470))
+
 ## v0.40.0
 
 ### Packaging
