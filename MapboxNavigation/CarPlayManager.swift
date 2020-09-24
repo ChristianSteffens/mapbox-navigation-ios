@@ -268,7 +268,7 @@ extension CarPlayManager: CPApplicationDelegate {
 
     public func application(_ application: UIApplication, didDisconnectCarInterfaceController interfaceController: CPInterfaceController, from window: CPWindow) {
         CarPlayManager.isConnected = false
-        self.interfaceController = nil        
+        self.interfaceController = nil
         
         window.rootViewController = nil
         window.isHidden = true
@@ -681,10 +681,27 @@ extension CarPlayManager: CarPlayNavigationDelegate {
         let mapTemplate = self.mapTemplate(for: interfaceController)
         mainMapTemplate = mapTemplate
         
-        interfaceController.setRootTemplate(mapTemplate, animated: true)
-        interfaceController.popToRootTemplate(animated: true)
-        
-        delegate?.carPlayManagerDidEndNavigation(self)
+        // Now we need to set (i.e. exchange) the root template and pop back
+        // to this new root template.
+                
+        if #available(iOS 14.0, *) {
+            // Set and pop of root templates in iOS 14 and later support
+            // an optional completion handler. These handlers need to be used
+            // to ensure we're not trying to pop to the root template before (!)
+            // the new root template has been set. Otherwise and with no completion
+            // handler set, CarPlay will throw an error and cause a crash.
+            interfaceController.setRootTemplate(mapTemplate, animated: true) { _, _  in
+                // Ignore success or error as we're not providing any form of recovery.
+                interfaceController.popToRootTemplate(animated: true) { _, _ in
+                    self.delegate?.carPlayManagerDidEndNavigation(self)
+                }
+            }
+        } else {
+            // No completion handler for set and pop root template before iOS 14
+            interfaceController.setRootTemplate(mapTemplate, animated: true)
+            interfaceController.popToRootTemplate(animated: true)
+            delegate?.carPlayManagerDidEndNavigation(self)
+        }
     }
 }
 
